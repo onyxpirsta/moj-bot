@@ -9,6 +9,7 @@ from flask import Flask
 # =======================================================
 # ВПИШИТЕ СВОИ ДАННЫЕ В КАВЫЧКАХ МЕЖДУ СТРОКАМИ НИЖЕ:
 BOT_TOKEN = "8823585045:AAFIuXx6gsh2Vnqd-tWBC6h1HoDx9YqC75M"
+ATERNOS_SESSION = "ftKabEtBIOhwlS67eKh0FC4c1HZ2fqiLcP5edWvFtopuMOpO67y3UvQH1wRX1GPU5WXOZwYkMoNQFKRs7PhOVewstKJ15P9AKjYP"
 ATERNOS_USER = "onyxpirsta"
 ATERNOS_PASS = "Arsenijs_2024"
 SERVER_IP = "onyxpirsta.aternos.me"
