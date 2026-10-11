@@ -49,7 +49,7 @@ def start_server_logic(message):
             page = context.new_page()
             
             bot.edit_message_text("🔄 Захожу на сайт Aternos...", message.chat.id, status.message_id)
-            page.goto("https://aternos.org", wait_until="networkidle")
+            page.goto("https://aternos.org", timeout=120000)
             
             page.fill("input[placeholder='Username']", ATERNOS_USER)
             page.fill("input[placeholder='Password']", ATERNOS_PASS)
@@ -59,7 +59,7 @@ def start_server_logic(message):
             page.wait_for_timeout(5000)
             
             if "server" not in page.url:
-                page.goto("https://aternos.org", wait_until="networkidle")
+                page.goto("https://aternos.org", timeout=120000)
             
             bot.edit_message_text("⚡ Ищу кнопку запуска сервера...", message.chat.id, status.message_id)
             
