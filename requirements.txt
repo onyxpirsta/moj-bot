@@ -1,3 +1,4 @@
 pyTelegramBotAPI
 playwright
 flask
+playwright-stealth
