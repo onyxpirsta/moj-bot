@@ -2,3 +2,4 @@ pyTelegramBotAPI
 playwright
 flask
 playwright-stealth
+mcstatus
