@@ -78,6 +78,10 @@ def run_tg_bot():
     bot.infinity_polling()
 
 if __name__ == "__main__":
+    # Добавляем автоматическое скачивание браузера при запуске
+    import os
+    os.system("playwright install chromium")
+
     threading.Thread(target=run_web_server, daemon=True).start()
     print("Бот успешно запущен в облаке Render!")
     run_tg_bot()
