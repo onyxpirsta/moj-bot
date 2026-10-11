@@ -9,7 +9,7 @@ from flask import Flask
 
 # =======================================================
 # ВПИШИТЕ СВОИ ДАННЫЕ В КАВЫЧКАХ МЕЖДУ СТРОКАМИ НИЖЕ:
-BOT_TOKEN = "8823585045:AAFg639ykUUtf4c1ofq4Qzh_5qykEyMxxE8"
+BOT_TOKEN = "8823585045:AAFIuXx6gsh2Vnqd-tWBC6h1HoDx9YqC75M"
 ATERNOS_USER = "onyxpirsta"
 ATERNOS_PASS = "Arsenijs_2024"
 SERVER_IP = "onyxpirsta.aternos.me"  # Например: mybestserver.aternos.me
