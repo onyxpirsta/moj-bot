@@ -3,7 +3,8 @@ import threading
 import telebot
 from telebot import types
 from playwright.sync_api import sync_playwright
-from playwright_stealth import stealth  # Исправили имя импорта
+from playwright_stealth import stealth
+from mcstatus import JavaServer  # Исправили подключение библиотеки
 from flask import Flask
 
 # =======================================================
@@ -11,6 +12,10 @@ from flask import Flask
 BOT_TOKEN = "8823585045:AAFg639ykUUtf4c1ofq4Qzh_5qykEyMxxE8"
 ATERNOS_USER = "onyxpirsta"
 ATERNOS_PASS = "Arsenijs_2024"
+SERVER_IP = "onyxpirsta.aternos.me"  # Например: mybestserver.aternos.me
+
+# БЕЛЫЙ СПИСОК (Впишите сюда ID через запятую):
+ALLOWED_USERS = [123456789, 987654321]  # Вставьте сюда ваши настоящие ID
 # =======================================================
 
 app = Flask(__name__)
@@ -27,19 +32,50 @@ bot = telebot.TeleBot(BOT_TOKEN)
 
 def get_keyboard():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add(types.KeyboardButton("🚀 Запустить сервер"))
+    btn_start = types.KeyboardButton("🚀 Запустить сервер")
+    btn_status = types.KeyboardButton("📊 Статус сервера")
+    markup.add(btn_start, btn_status)
     return markup
 
 @bot.message_handler(commands=['start'])
 def start_cmd(message):
+    if message.from_user.id not in ALLOWED_USERS:
+        bot.send_message(message.chat.id, "❌ У вас нет доступа к управлению этим сервером.")
+        return
+        
     bot.send_message(
         message.chat.id, 
-        f"Привет, {message.from_user.first_name}! Нажми кнопку ниже, чтобы запустить игру.", 
+        f"Привет, {message.from_user.first_name}! Панель управления активирована. Используй кнопки ниже:", 
         reply_markup=get_keyboard()
     )
 
+@bot.message_handler(func=lambda m: m.text == "📊 Статус сервера")
+def check_server_status(message):
+    if message.from_user.id not in ALLOWED_USERS:
+        return
+
+    status_msg = bot.send_message(message.chat.id, "🔍 Опрашиваю сервер Minecraft...")
+    
+    try:
+        # Новый правильный способ опроса сервера для актуальной mcstatus
+        server = JavaServer.lookup(SERVER_IP)
+        query = server.status()
+        
+        text = (
+            f"🟢 **Сервер СЕЙЧАС РАБОТАЕТ!**\n\n"
+            f"👥 Игроков онлайн: `{query.players.online}/{query.players.max}`\n"
+            f"⚡ Пинг: `{round(query.latency)} мс`"
+        )
+        bot.edit_message_text(text, message.chat.id, status_msg.message_id, parse_mode="Markdown")
+        
+    except Exception:
+        bot.edit_message_text("🔴 **Сервер сейчас ВЫКЛЮЧЕН.**\nВы можете запустить его кнопкой ниже.", message.chat.id, status_msg.message_id, parse_mode="Markdown")
+
 @bot.message_handler(func=lambda m: m.text == "🚀 Запустить сервер")
 def start_server_logic(message):
+    if message.from_user.id not in ALLOWED_USERS:
+        return
+
     status = bot.send_message(message.chat.id, "⏳ Открываю виртуальный браузер...")
     browser = None
     try:
@@ -50,7 +86,7 @@ def start_server_logic(message):
                 viewport={"width": 1280, "height": 720}
             )
             page = context.new_page()
-            stealth(page)  # Исправили имя функции маскировки здесь
+            stealth(page)
             
             bot.edit_message_text("🔄 Захожу на сайт Aternos...", message.chat.id, status.message_id)
             page.goto("https://aternos.org", timeout=60000)
@@ -73,7 +109,7 @@ def start_server_logic(message):
             else:
                 page.screenshot(path="error_screen.png")
                 with open("error_screen.png", "rb") as photo:
-                    bot.send_photo(message.chat.id, photo, caption="❌ Не нашёл поля для ввода. Посмотри на скриншот:")
+                    bot.send_photo(message.chat.id, photo, caption="❌ Не нашёл поля для ввода:")
                 bot.delete_message(message.chat.id, status.message_id)
                 browser.close()
                 return
@@ -90,7 +126,7 @@ def start_server_logic(message):
             if start_btn:
                 start_btn.click()
                 page.wait_for_timeout(3000)
-                bot.edit_message_text("✅ Сигнал на запуск успешно отправлен! Сервер включается.", message.chat.id, status.message_id)
+                bot.edit_message_text("✅ Сигнал на запуск успешно отправлен! Сервер включается. Проверяйте статус через кнопку.", message.chat.id, status.message_id)
             else:
                 bot.edit_message_text("❌ Кнопка запуска не найдена.", message.chat.id, status.message_id)
             
@@ -101,7 +137,7 @@ def start_server_logic(message):
             if browser:
                 page.screenshot(path="error_screen.png")
                 with open("error_screen.png", "rb") as photo:
-                    bot.send_photo(message.chat.id, photo, caption=f"❌ Ошибка: {str(e)}\nВот что было на экране:")
+                    bot.send_photo(message.chat.id, photo, caption=f"❌ Ошибка: {str(e)}")
         except:
             bot.edit_message_text(f"❌ Критическая ошибка: {str(e)}", message.chat.id, status.message_id)
 
