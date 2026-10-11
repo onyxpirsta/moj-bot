@@ -3,7 +3,7 @@ import threading
 import telebot
 from telebot import types
 from playwright.sync_api import sync_playwright
-from playwright_stealth import stealth
+from playwright_stealth import Stealth
 from flask import Flask
 
 # =======================================================
@@ -72,7 +72,7 @@ def start_server_logic(message):
             browser = p.chromium.launch(headless=True)
             context = browser.new_context(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
             page = context.new_page()
-            stealth(page)
+           
             
             bot.edit_message_text("🔄 Захожу на Aternos...", message.chat.id, status.message_id)
             page.goto("https://aternos.org", timeout=60000)
