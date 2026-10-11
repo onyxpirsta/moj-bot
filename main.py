@@ -4,7 +4,6 @@ import telebot
 from telebot import types
 from playwright.sync_api import sync_playwright
 from playwright_stealth import stealth
-from mcstatus import JavaServer
 from flask import Flask
 
 # =======================================================
@@ -30,14 +29,13 @@ def run_web_server():
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# Новое меню с тремя кнопками
 def get_keyboard():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn_start = types.KeyboardButton("🚀 Запустить сервер")
     btn_status = types.KeyboardButton("📊 Статус сервера")
     btn_ip = types.KeyboardButton("🌐 IP Сервера")
     markup.add(btn_start, btn_status)
-    markup.add(btn_ip)  # Кнопка IP на отдельной строчке
+    markup.add(btn_ip)
     return markup
 
 @bot.message_handler(commands=['start'])
@@ -47,37 +45,21 @@ def start_cmd(message):
         return
     bot.send_message(
         message.chat.id, 
-        f"Привет, {message.from_user.first_name}! Используй кнопки ниже:", 
+        f"Привет, {message.from_user.first_name}! КОД ОБНОВЛЕН. Используй кнопки ниже:", 
         reply_markup=get_keyboard()
     )
 
-# КНОПКА УЗНАТЬ IP
 @bot.message_handler(func=lambda m: m.text == "🌐 IP Сервера")
 def send_server_ip(message):
     if message.from_user.id not in ALLOWED_USERS:
         return
-    text = (
-        f"🎮 **Данные для подключения к серверу:**\n\n"
-        f"📍 IP адрес: `onyxpirsta.aternos.me`"
-    )
-    bot.send_message(message.chat.id, text, parse_mode="Markdown")
+    bot.send_message(message.chat.id, f"🎮 **Данные для подключения:**\n\n📍 IP адрес: `onyxpirsta.aternos.me`")
 
 @bot.message_handler(func=lambda m: m.text == "📊 Статус сервера")
 def check_server_status(message):
     if message.from_user.id not in ALLOWED_USERS:
         return
-    status_msg = bot.send_message(message.chat.id, "🔍 Опрашиваю сервер...")
-    try:
-        server = JavaServer.lookup(SERVER_IP)
-        query = server.status()
-        text = (
-            f"🟢 **Сервер СЕЙЧАС РАБОТАЕТ!**\n\n"
-            f"👥 Игроков онлайн: `{query.players.online}/{query.players.max}`\n"
-            f"⚡ Пинг: `{round(query.latency)} мс`"
-        )
-        bot.edit_message_text(text, message.chat.id, status_msg.message_id, parse_mode="Markdown")
-    except:
-        bot.edit_message_text("🔴 **Сервер сейчас ВЫКЛЮЧЕН.**", message.chat.id, status_msg.message_id, parse_mode="Markdown")
+    bot.send_message(message.chat.id, f"🔴 **Статус можно узнать в игре по IP:**\n`onyxpirsta.aternos.me`")
 
 @bot.message_handler(func=lambda m: m.text == "🚀 Запустить сервер")
 def start_server_logic(message):
@@ -88,9 +70,7 @@ def start_server_logic(message):
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
-            context = browser.new_context(
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-            )
+            context = browser.new_context(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
             page = context.new_page()
             stealth(page)
             
@@ -108,8 +88,6 @@ def start_server_logic(message):
                 login_btn = page.query_selector(".btn-success") or page.query_selector("button")
                 if login_btn:
                     login_btn.click()
-                else:
-                    page.click("text=Login")
             else:
                 page.screenshot(path="error_screen.png")
                 with open("error_screen.png", "rb") as photo:
@@ -139,5 +117,4 @@ if __name__ == "__main__":
     if not os.path.exists("/opt/render/.cache/ms-playwright"):
         os.system("playwright install chromium")
     threading.Thread(target=run_web_server, daemon=True).start()
-    run_tg_bot = lambda: bot.infinity_polling()
-    run_tg_bot()
+    bot.infinity_polling()
