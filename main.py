@@ -15,7 +15,7 @@ ATERNOS_PASS = "Arsenijs_2024"
 SERVER_IP = "onyxpirsta.aternos.me"  # Например: mybestserver.aternos.me
 
 # БЕЛЫЙ СПИСОК (Впишите сюда ID через запятую):
-ALLOWED_USERS = [123456789, 987654321]  # Вставьте сюда ваши настоящие ID
+ALLOWED_USERS = [5158884571, ]  # Вставьте сюда ваши настоящие ID
 # =======================================================
 
 app = Flask(__name__)
