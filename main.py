@@ -3,6 +3,7 @@ import threading
 import telebot
 from telebot import types
 from playwright.sync_api import sync_playwright
+from playwright_stealth import stealth_sync  # Подключили невидимку
 from flask import Flask
 
 # =======================================================
@@ -45,19 +46,18 @@ def start_server_logic(message):
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             context = browser.new_context(
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
                 viewport={"width": 1280, "height": 720}
             )
             page = context.new_page()
+            stealth_sync(page)  # Включили маскировку на странице от Cloudflare
             
             bot.edit_message_text("🔄 Захожу на сайт Aternos...", message.chat.id, status.message_id)
             page.goto("https://aternos.org", timeout=60000)
-            page.wait_for_timeout(3000)
+            page.wait_for_timeout(5000)
             
-            # Более надёжный поиск полей ввода (по ID и типу)
             bot.edit_message_text("🔑 Ввожу логин и пароль...", message.chat.id, status.message_id)
             
-            # Ищем поле логина по ID или по типу
             user_input = page.query_selector("#user") or page.query_selector("input[type='text']")
             pass_input = page.query_selector("#password") or page.query_selector("input[type='password']")
             
@@ -71,10 +71,9 @@ def start_server_logic(message):
                 else:
                     page.click("text=Login")
             else:
-                # Если поля не найдены, делаем скриншот для диагностики
                 page.screenshot(path="error_screen.png")
                 with open("error_screen.png", "rb") as photo:
-                    bot.send_photo(message.chat.id, photo, caption="❌ Не нашёл поля для ввода. Возможно, вылезла капча защиты. Посмотри на скриншот:")
+                    bot.send_photo(message.chat.id, photo, caption="❌ Не нашёл поля для ввода. Посмотри на скриншот:")
                 bot.delete_message(message.chat.id, status.message_id)
                 browser.close()
                 return
@@ -98,7 +97,6 @@ def start_server_logic(message):
             browser.close()
             
     except Exception as e:
-        # В случае любой другой ошибки тоже пытаемся сделать скриншот экрана
         try:
             if browser:
                 page.screenshot(path="error_screen.png")
