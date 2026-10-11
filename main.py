@@ -4,7 +4,7 @@ import telebot
 from telebot import types
 from playwright.sync_api import sync_playwright
 from playwright_stealth import stealth
-from mcstatus import JavaServer  # Исправили подключение библиотеки
+from mcstatus import JavaServer
 from flask import Flask
 
 # =======================================================
@@ -12,10 +12,10 @@ from flask import Flask
 BOT_TOKEN = "8823585045:AAFIuXx6gsh2Vnqd-tWBC6h1HoDx9YqC75M"
 ATERNOS_USER = "onyxpirsta"
 ATERNOS_PASS = "Arsenijs_2024"
-SERVER_IP = "onyxpirsta.aternos.me"  # Например: mybestserver.aternos.me
+SERVER_IP = "onyxpirsta.aternos.me"
 
 # БЕЛЫЙ СПИСОК (Впишите сюда ID через запятую):
-ALLOWED_USERS = [5158884571, ]  # Вставьте сюда ваши настоящие ID
+ALLOWED_USERS = [123456789]  # ЗАМЕНИТЕ 123456789 НА ВАШ НАСТОЯЩИЙ ID ТГ
 # =======================================================
 
 app = Flask(__name__)
@@ -55,19 +55,15 @@ def check_server_status(message):
         return
 
     status_msg = bot.send_message(message.chat.id, "🔍 Опрашиваю сервер Minecraft...")
-    
     try:
-        # Новый правильный способ опроса сервера для актуальной mcstatus
         server = JavaServer.lookup(SERVER_IP)
         query = server.status()
-        
         text = (
             f"🟢 **Сервер СЕЙЧАС РАБОТАЕТ!**\n\n"
             f"👥 Игроков онлайн: `{query.players.online}/{query.players.max}`\n"
             f"⚡ Пинг: `{round(query.latency)} мс`"
         )
         bot.edit_message_text(text, message.chat.id, status_msg.message_id, parse_mode="Markdown")
-        
     except Exception:
         bot.edit_message_text("🔴 **Сервер сейчас ВЫКЛЮЧЕН.**\nВы можете запустить его кнопкой ниже.", message.chat.id, status_msg.message_id, parse_mode="Markdown")
 
@@ -93,7 +89,6 @@ def start_server_logic(message):
             page.wait_for_timeout(5000)
             
             bot.edit_message_text("🔑 Ввожу логин и пароль...", message.chat.id, status.message_id)
-            
             user_input = page.query_selector("#user") or page.query_selector("input[type='text']")
             pass_input = page.query_selector("#password") or page.query_selector("input[type='password']")
             
@@ -129,7 +124,6 @@ def start_server_logic(message):
                 bot.edit_message_text("✅ Сигнал на запуск успешно отправлен! Сервер включается. Проверяйте статус через кнопку.", message.chat.id, status.message_id)
             else:
                 bot.edit_message_text("❌ Кнопка запуска не найдена.", message.chat.id, status.message_id)
-            
             browser.close()
             
     except Exception as e:
